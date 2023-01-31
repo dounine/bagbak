@@ -28,7 +28,7 @@
     "chalk": "^4.0.0",
     "cli-progress": "^3.8.2",
     "commander": "^5.1.0",
-    "frida": "^16.0.4",
+    "frida": "^15.2.2",
     "ssh2": "^1.11.0"
   },
   "repository": {
