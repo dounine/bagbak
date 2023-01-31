@@ -290,7 +290,7 @@ async function dump(dev, session, opt) {
   console.log('dump main app')
 
   const sanitized = {
-    executableOnly: opt.executableOnly 
+    executableOnly: opt.executableOnly
   }
 
   await script.exports.prepare(c)
@@ -363,6 +363,7 @@ async function main() {
     .option('-u, --uuid <uuid>', 'uuid of USB device (optional)')
     .option('-o, --output <output>', 'output directory', 'dump')
     .option('-f, --override', 'override existing')
+      .option('-k, --kill', 'dump finish kill app')
     .option('-e, --executable-only', 'dump executables only')
     .option('-z, --zip', 'create zip archive (ipa)')
     .option('-n, --no-extension', 'do not dump extensions')
@@ -402,11 +403,13 @@ async function main() {
     const app = program.args[0]
     const opt = Object.assign({ app }, program)
     const session = await device.run(app)
-    // const { pid } = session
+    const { pid } = session
     await dump(device.dev, session, opt)
 
     await session.detach()
-    // await device.dev.kill(pid)
+
+    if(program.kill)
+        await device.dev.kill(pid)
 
     if (program.zip) {
       const tmp = path.join('..', app + '.zip')
