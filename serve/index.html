@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<script>
+    let xhr = new XMLHttpRequest();//新建请求对象
+    xhr.addEventListener("load", loadHandler);//添加处理事件
+    xhr.open("GET", "http://127.0.0.1:3000/automation/open");//打开发送到的地址
+    xhr.send();//发送数据，没有空着
+    // 事件处理
+    function loadHandler(e) {
+        console.log("从node服务接收到的数据：", xhr.response);
+    }
+
+    // window.location.href = 'https://apps.apple.com/us/app/ark-survival-evolved/id1280480538?uo=4'
+</script>
+<body>
+</body>
+</html>

@@ -22,13 +22,19 @@
   "devDependencies": {
     "@types/frida-gum": "^17.1.0",
     "@types/node": "^16.4.10",
-    "frida-compile": "^10.2.4"
+    "frida-compile": "^10.2.4",
+    "node-fetch": "^2.6.9",
+    "request": "^2.88.2"
   },
   "dependencies": {
     "chalk": "^4.0.0",
     "cli-progress": "^3.8.2",
     "commander": "^5.1.0",
+    "crypto": "^1.0.1",
     "frida": "^15.2.2",
+    "fs-extra": "^11.1.0",
+    "remove": "^0.1.5",
+    "shelljs": "^0.8.5",
     "ssh2": "^1.11.0"
   },
   "repository": {
