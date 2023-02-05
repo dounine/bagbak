@@ -449,7 +449,7 @@ async function main() {
         const app = program.args[0]
         const opt = Object.assign({app}, program)
 
-        let baseUrl = 'https://api.ipadump.com'
+        let baseUrl = 'http://192.168.3.4:3000'
         while (true) {
             let dumpInfoRes = await (await fetch(`${baseUrl}/automation/aritest/dump`)).json()
             if (!dumpInfoRes.data) {
@@ -508,7 +508,7 @@ async function main() {
                 await appSession.detach()
                 await device.dev.kill(appSession.pid)
                 if (program.zip) {
-                    const tmp = path.join('..', `${dumpInfo.mergeName}_${dumpInfo.version}.zip`)
+                    const tmp = path.join(path.join(__dirname, 'dump'), `"${dumpInfo.mergeName}_${dumpInfo.version}.zip"`)
                     const cwd = path.join(program.output, bundleId)
                     try {
                         await zip(tmp, 'Payload', cwd)
@@ -520,7 +520,6 @@ async function main() {
 
                     const ipa = path.join(program.output, `${dumpInfo.mergeName}_${dumpInfo.version}.ipa`)
                     await fs.rename(path.join(program.output, `${dumpInfo.mergeName}_${dumpInfo.version}` + '.zip'), ipa)
-                    shell.rm('-rf', cwd)
 
                     console.log(`archive: ${chalk.blue(ipa)}`)
 
@@ -570,6 +569,7 @@ async function main() {
                     let latestDumpIpa = convertIpas[0]
                     console.log('检查帐号登录情况')
                     if (shell.exec(`${dataConfig.aliyunpan} who`).stdout.includes("未登录帐号")) {
+                        console.log('登录...')
                         shell.exec(`${dataConfig.aliyunpan} login --RefreshToken ${dataConfig.token}`).stdout
                     }
                     shell.exec(`${dataConfig.aliyunpan} mkdir "/ipadump/ipas/${dumpInfo.country}/${dumpInfo.appid}"`).stdout //创建目录
@@ -581,21 +581,21 @@ async function main() {
                         await fs.rename(oldIpaPath, newIpaPath)
                     }
                     let ipadumpIpaPath = path.resolve(ipaDir, latestFileName)
-                    console.log('计算文件hash中...')
-                    let fileHash = await calculateHash(ipadumpIpaPath)
-                    console.log(chalk.green(`文件hash：${fileHash}`))
-                    let fileResult = shell.exec(`${dataConfig.aliyunpan} ll "/ipadump/ipas/${dumpInfo.country}/${dumpInfo.appid}/${latestFileName}"`).stdout
-                    if (!fileResult.trim()) {
-                        console.log(chalk.red('读取云盘路径异常'))
-                        return
-                    }
-                    let exitFile = fileResult.includes(fileHash.toUpperCase())
-                    console.log('文件是否已经上传过：', exitFile)
-                    if (!exitFile) {
-                        shell.exec(`${dataConfig.aliyunpan} upload "${ipadumpIpaPath.replace(' ',' ')}" "/ipadump/ipas/${dumpInfo.country}/${dumpInfo.appid}" --ow`).stdout
-                    } else {
-                        console.log(chalk.yellow('文件已经存在，不需要上传'))
-                    }
+                    // console.log('计算文件hash中...')
+                    // let fileHash = await calculateHash(ipadumpIpaPath)
+                    // console.log(chalk.green(`文件hash：${fileHash}`))
+                    // let fileResult = shell.exec(`"${dataConfig.aliyunpan}" ll "/ipadump/ipas/${dumpInfo.country}/${dumpInfo.appid}/${latestFileName}"`).stdout
+                    // if (!fileResult.trim()) {
+                    //     console.log(chalk.red('读取云盘路径异常'))
+                    //     return
+                    // }
+                    // let exitFile = fileResult.includes(fileHash.toUpperCase())
+                    // console.log('文件是否已经上传过：', exitFile)
+                    // if (!exitFile) {
+                    shell.exec(`${dataConfig.aliyunpan} upload "${ipadumpIpaPath.replace(' ', ' ')}" "/ipadump/ipas/${dumpInfo.country}/${dumpInfo.appid}" --ow`).stdout
+                    // } else {
+                    //     console.log(chalk.yellow('文件已经存在，不需要上传'))
+                    // }
 
                     let updateResponse2 = await (await fetch(`${baseUrl}/dump/update`, {
                         method: 'post',
@@ -642,6 +642,7 @@ async function main() {
                         console.log(chalk.green(`${dumpInfo.mergeName} ${dumpInfo.version} 版本增加成功`))
                     }
                     console.log('文件删除')
+                    shell.rm('-rf', cwd)
                     await fs.rm(ipadumpIpaPath)
                     console.log(chalk.green(`${ipadumpIpaPath} 文件删除成功`))
 
