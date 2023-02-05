@@ -490,6 +490,33 @@ async function main() {
 
                 //info
                 let bundleId = dumpInfo.bundleId
+                //
+
+                let updateResponse = await (await fetch(`${baseUrl}/dump/update`, {
+                    method: 'post',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        appid: dumpInfo.appid,
+                        country: dumpInfo.country,
+                        name: dumpInfo.mergeName,
+                        lname: dumpInfo.name,
+                        icon: dumpInfo.icon,
+                        version: dumpInfo.version,
+                        des: '官方版本',
+                        latest: 1,
+                        bundleId: dumpInfo.bundleId,
+                        status: 1
+                    })
+                })).json()
+
+                console.log('修改状态为提取中：', updateResponse)
+                if (!updateResponse.data) {
+                    console.error(chalk.red('修改状态异常，请检查'), updateResponse.msg)
+                    return
+                }
+
+
+                //
                 console.log('检查下载...', bundleId)
                 await checkDownloaded(device, bundleId)
                 console.log(chalk.green('下载完成'))
@@ -502,6 +529,17 @@ async function main() {
                         app: bundleId
                     })
                 } catch (e) {
+                    await (await fetch(dataConfig.notify,{
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: {
+                            msgtype: 'markdown',
+                            markdown: {
+                                title: `${dumpInfo.name} 砸壳失败`,
+                                text: JSON.stringify(dumpInfo)
+                            }
+                        }
+                    })).json()
                     console.error(chalk.red('砸壳失败，请检查'), e)
                     return
                 }
@@ -543,28 +581,6 @@ async function main() {
                     });
 
                     // shell.exec(`tidevice uninstall ${bundleId}`).stdout//删除app,不建议添加，怕上传失败，每天批量一波即可
-                    let updateResponse = await (await fetch(`${baseUrl}/dump/update`, {
-                        method: 'post',
-                        headers: {'Content-Type': 'application/json'},
-                        body: JSON.stringify({
-                            appid: dumpInfo.appid,
-                            country: dumpInfo.country,
-                            name: dumpInfo.mergeName,
-                            lname: dumpInfo.name,
-                            icon: dumpInfo.icon,
-                            version: dumpInfo.version,
-                            des: '官方版本',
-                            latest: 1,
-                            bundleId: dumpInfo.bundleId,
-                            status: 1
-                        })
-                    })).json()
-
-                    console.log('修改状态为提取中：', updateResponse)
-                    if (!updateResponse.data) {
-                        console.error(chalk.red('修改状态异常，请检查'), updateResponse.msg)
-                        return
-                    }
 
                     let latestDumpIpa = convertIpas[0]
                     console.log('检查帐号登录情况')
