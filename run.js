@@ -693,7 +693,7 @@ async function main() {
                         return
                     } else {
                         console.log(chalk.green('提取状态完成，开始处理下一个请求'))
-                        shell.exec(`tidevice uninstall ${bundleId}`).stdout
+                        // shell.exec(`tidevice uninstall ${bundleId}`).stdout
                     }
                 }
                 //开始砸壳上传
