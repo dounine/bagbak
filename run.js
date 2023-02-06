@@ -451,7 +451,7 @@ async function main() {
 
         let baseUrl = 'http://192.168.3.4:3000'
         while (true) {
-            let dumpInfoRes = await (await fetch(`${baseUrl}/automation/aritest/dump`)).json()
+            let dumpInfoRes = await (await fetch(`${baseUrl}/automation/airtest/dump`)).json()
             if (!dumpInfoRes.data) {
                 console.log('没有要处理的提取请求')
                 await timeout(3000)
@@ -480,7 +480,7 @@ async function main() {
                 break;
             }
 
-            let switchCountry = await (await fetch(`${baseUrl}/automation/aritest/switchCountry`)).json()
+            let switchCountry = await (await fetch(`${baseUrl}/automation/airtest/switchCountry`)).json()
             console.log('切换是否已经切换 ->', switchCountry.data)
             while (switchCountry.data) {//是否已经切换地区
                 // const safariSession = await device.run('com.apple.mobilesafari')//打开safari浏览器
@@ -529,7 +529,7 @@ async function main() {
                         app: bundleId
                     })
                 } catch (e) {
-                    await (await fetch(dataConfig.notify,{
+                    await (await fetch(dataConfig.notify, {
                         method: 'POST',
                         headers: {'Content-Type': 'application/json'},
                         body: {
@@ -546,7 +546,7 @@ async function main() {
                 await appSession.detach()
                 await device.dev.kill(appSession.pid)
                 if (program.zip) {
-                    const tmp = path.join(path.join(__dirname, 'dump'), `"${dumpInfo.mergeName}_${dumpInfo.version}.zip"`)
+                    const tmp = path.join(path.join(__dirname, 'dump'), `${dumpInfo.mergeName}_${dumpInfo.version}.zip`)
                     const cwd = path.join(program.output, bundleId)
                     try {
                         await zip(tmp, 'Payload', cwd)
@@ -588,7 +588,9 @@ async function main() {
                         console.log('登录...')
                         shell.exec(`${dataConfig.aliyunpan} login --RefreshToken ${dataConfig.token}`).stdout
                     }
-                    shell.exec(`${dataConfig.aliyunpan} mkdir "/ipadump/ipas/${dumpInfo.country}/${dumpInfo.appid}"`).stdout //创建目录
+                    if (shell.exec(`${dataConfig.aliyunpan} ll "/ipadump/ipas/${dumpInfo.country}/${dumpInfo.appid}"`).stdout.includes("目录路径不存在")) {
+                        shell.exec(`${dataConfig.aliyunpan} mkdir "/ipadump/ipas/${dumpInfo.country}/${dumpInfo.appid}"`).stdout //创建目录
+                    }
                     let latestFileName = `ipadump.com_${dumpInfo.mergeName}_${dumpInfo.version}.ipa`
                     let newIpaPath = path.resolve(ipaDir, latestFileName)
                     if (`${latestFileName}` !== latestDumpIpa.fileName) {
@@ -608,10 +610,29 @@ async function main() {
                     // let exitFile = fileResult.includes(fileHash.toUpperCase())
                     // console.log('文件是否已经上传过：', exitFile)
                     // if (!exitFile) {
-                    shell.exec(`${dataConfig.aliyunpan} upload "${ipadumpIpaPath.replace(' ', ' ')}" "/ipadump/ipas/${dumpInfo.country}/${dumpInfo.appid}" --ow`).stdout
+                    shell.exec(`${dataConfig.aliyunpan} upload "${ipadumpIpaPath}" "/ipadump/ipas/${dumpInfo.country}/${dumpInfo.appid}" --ow`).stdout
                     // } else {
                     //     console.log(chalk.yellow('文件已经存在，不需要上传'))
                     // }
+                    let fileExit = shell.exec(`${dataConfig.aliyunpan} ll "/ipadump/ipas/${dumpInfo.country}/${dumpInfo.appid}/${latestFileName}"`).stdout
+
+                    if (fileExit.includes('目录路径不存在')) {
+                        console.error(chalk.red('文件上传失败'))
+                        await (await fetch(dataConfig.notify, {
+                            method: 'POST',
+                            headers: {'Content-Type': 'application/json'},
+                            body: {
+                                msgtype: 'markdown',
+                                markdown: {
+                                    title: `${dumpInfo.name} 砸壳失败、文件上传失败`,
+                                    text: JSON.stringify(dumpInfo)
+                                }
+                            }
+                        })).json()
+                        return
+                    } else {
+                        console.log(chalk.green('文件上传成功!!!'))
+                    }
 
                     let updateResponse2 = await (await fetch(`${baseUrl}/dump/update`, {
                         method: 'post',
@@ -672,6 +693,7 @@ async function main() {
                         return
                     } else {
                         console.log(chalk.green('提取状态完成，开始处理下一个请求'))
+                        shell.exec(`tidevice uninstall ${bundleId}`).stdout
                     }
                 }
                 //开始砸壳上传
