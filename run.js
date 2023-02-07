@@ -467,8 +467,9 @@ async function main() {
                 headers: {'Content-Type': 'application/json'}
             })).json()
 
+            let storeInfo = null
             if (lookupResponse.results.length > 0) {
-                let storeInfo = lookupResponse.results[0]
+                storeInfo = lookupResponse.results[0]
                 if (storeInfo.version !== dumpInfo.version) {
                     console.error(chalk.red(`appStore上的最新版本为：${storeInfo.version} , 要提取的版本为：${dumpInfo.version} , 不满足最新版本需求，请检查。`))
                     break;
@@ -502,6 +503,7 @@ async function main() {
                         lname: dumpInfo.name,
                         icon: dumpInfo.icon,
                         version: dumpInfo.version,
+                        price: storeInfo.price,
                         des: '官方版本',
                         latest: 1,
                         bundleId: dumpInfo.bundleId,
@@ -515,11 +517,11 @@ async function main() {
                     return
                 }
 
-
-                //
                 console.log('检查下载...', bundleId)
                 await checkDownloaded(device, bundleId)
                 console.log(chalk.green('下载完成'))
+                shell.exec(`tidevice launch ${bundleId}`)
+                await timeout(3000)
                 const appSession = await device.run(bundleId)//打开pp
                 console.log('app运行成功')
                 shell.rm('-rf', path.join(program.output, bundleId))
@@ -643,6 +645,7 @@ async function main() {
                             name: dumpInfo.mergeName,
                             lname: dumpInfo.name,
                             version: dumpInfo.version,
+                            price: storeInfo.price,
                             icon: dumpInfo.icon,
                             des: '官方版本',
                             latest: 1,
@@ -693,7 +696,7 @@ async function main() {
                         return
                     } else {
                         console.log(chalk.green('提取状态完成，开始处理下一个请求'))
-                        // shell.exec(`tidevice uninstall ${bundleId}`).stdout
+                        shell.exec(`tidevice uninstall ${bundleId}`).stdout
                     }
                 }
                 //开始砸壳上传
