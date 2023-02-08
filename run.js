@@ -449,7 +449,7 @@ async function main() {
         const app = program.args[0]
         const opt = Object.assign({app}, program)
 
-        let baseUrl = 'http://192.168.3.4:3000'
+        let baseUrl = 'https://api.ipadump.com'
         while (true) {
             let dumpInfoRes = await (await fetch(`${baseUrl}/automation/airtest/dump`)).json()
             if (!dumpInfoRes.data) {
@@ -503,6 +503,7 @@ async function main() {
                         lname: dumpInfo.name,
                         icon: dumpInfo.icon,
                         version: dumpInfo.version,
+                        genres: storeInfo.genres.join("/"),
                         price: storeInfo.price,
                         des: '官方版本',
                         latest: 1,
@@ -645,6 +646,7 @@ async function main() {
                             name: dumpInfo.mergeName,
                             lname: dumpInfo.name,
                             version: dumpInfo.version,
+                            genres: storeInfo.genres.join("/"),
                             price: storeInfo.price,
                             icon: dumpInfo.icon,
                             des: '官方版本',
