@@ -535,13 +535,13 @@ async function main() {
                     await (await fetch(dataConfig.notify, {
                         method: 'POST',
                         headers: {'Content-Type': 'application/json'},
-                        body: {
+                        body: JSON.stringify({
                             msgtype: 'markdown',
                             markdown: {
                                 title: `${dumpInfo.name} 砸壳失败`,
                                 text: JSON.stringify(dumpInfo)
                             }
-                        }
+                        })
                     })).json()
                     console.error(chalk.red('砸壳失败，请检查'), e)
                     return
@@ -617,6 +617,7 @@ async function main() {
                     // } else {
                     //     console.log(chalk.yellow('文件已经存在，不需要上传'))
                     // }
+                    await timeout(3000)
                     let fileExit = shell.exec(`${dataConfig.aliyunpan} ll "/ipadump/ipas/${dumpInfo.country}/${dumpInfo.appid}/${latestFileName}"`).stdout
 
                     if (fileExit.includes('目录路径不存在')) {
@@ -624,13 +625,13 @@ async function main() {
                         await (await fetch(dataConfig.notify, {
                             method: 'POST',
                             headers: {'Content-Type': 'application/json'},
-                            body: {
+                            body: JSON.stringify({
                                 msgtype: 'markdown',
                                 markdown: {
                                     title: `${dumpInfo.name} 砸壳失败、文件上传失败`,
                                     text: JSON.stringify(dumpInfo)
                                 }
-                            }
+                            })
                         })).json()
                         return
                     } else {
